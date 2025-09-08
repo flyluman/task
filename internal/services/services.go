@@ -14,25 +14,25 @@ type Restaurant struct {
 }
 
 func GetUserRestaurants(userID int) ([]Restaurant, error) {
-	rows, err := db.DB.Query(`
-	SELECT DISTINCT r.id, r.name, r.cash_balance
-	FROM restaurants r
-	JOIN purchases p ON r.id = p.restaurant_id
-	WHERE p.user_id = $1`, userID)
+	const query = `
+		SELECT DISTINCT r.id, r.name, r.cash_balance
+		FROM restaurants r
+		JOIN purchases p ON r.id = p.restaurant_id
+		WHERE p.user_id = $1
+	`
 
+	rows, err := db.DB.Query(query, userID)
 	if err != nil {
-		logger.Log.Error(err.Error())
+		logger.Log.Error("failed to query user restaurants", "user_id", userID, "error", err)
 		return nil, err
 	}
-
 	defer rows.Close()
 
 	var restaurants []Restaurant
-
 	for rows.Next() {
 		var r Restaurant
 		if err := rows.Scan(&r.ID, &r.Name, &r.CashBalance); err != nil {
-			logger.Log.Error(err.Error())
+			logger.Log.Error("failed to scan restaurant row", "error", err)
 			return nil, err
 		}
 		restaurants = append(restaurants, r)
@@ -42,74 +42,83 @@ func GetUserRestaurants(userID int) ([]Restaurant, error) {
 }
 
 func PurchaseMenuItem(userID, menuItemID int) error {
-	commit := false
 	tx, err := db.DB.Begin()
-
 	if err != nil {
-		logger.Log.Error("services: Error intializing transaction")
+		logger.Log.Error("failed to begin transaction", "error", err)
 		return err
 	}
-
 	defer func() {
-		if !commit {
-			tx.Rollback()
+		if err != nil {
+			_ = tx.Rollback()
 		}
 	}()
 
+	// Get price and restaurant_id
 	var price float32
 	var restaurantID int
-
-	err = tx.QueryRow("SELECT price, restaurant_id FROM menu_items WHERE id=$1", menuItemID).Scan(&price, &restaurantID)
+	err = tx.QueryRow(`
+		SELECT price, restaurant_id
+		FROM menu_items
+		WHERE id = $1
+	`, menuItemID).Scan(&price, &restaurantID)
 
 	if err != nil {
-		logger.Log.Error("services: Error quering database")
+		logger.Log.Error("failed to get menu item", "menu_item_id", menuItemID, "error", err)
 		return err
 	}
 
+	// Get user balance
 	var userBalance float32
-
-	err = tx.QueryRow("SELECT cash_balance FROM users WHERE id=$1", userID).Scan(&userBalance)
+	err = tx.QueryRow(`
+		SELECT cash_balance
+		FROM users
+		WHERE id = $1
+	`, userID).Scan(&userBalance)
 
 	if err != nil {
-		logger.Log.Error("services: Error quering database")
+		logger.Log.Error("failed to get user balance", "user_id", userID, "error", err)
 		return err
 	}
 
+	// Check balance
 	if userBalance < price {
 		return errors.New("insufficient balance")
 	}
 
-	_, err = tx.Exec("UPDATE users SET cash_balance = cash_balance - $1 WHERE id=$2", price, userID)
-
-	if err != nil {
-		logger.Log.Error("services: Error quering database")
+	// Deduct from user
+	if _, err = tx.Exec(`
+		UPDATE users
+		SET cash_balance = cash_balance - $1
+		WHERE id = $2
+	`, price, userID); err != nil {
+		logger.Log.Error("failed to update user balance", "user_id", userID, "error", err)
 		return err
 	}
 
-	_, err = tx.Exec("UPDATE restaurants SET cash_balance = cash_balance + $1 WHERE id=$2", price, restaurantID)
-
-	if err != nil {
-		logger.Log.Error("services: Error quering database")
+	// Add to restaurant
+	if _, err = tx.Exec(`
+		UPDATE restaurants
+		SET cash_balance = cash_balance + $1
+		WHERE id = $2
+	`, price, restaurantID); err != nil {
+		logger.Log.Error("failed to update restaurant balance", "restaurant_id", restaurantID, "error", err)
 		return err
 	}
 
-	_, err = tx.Exec(`
-        INSERT INTO purchases (user_id, restaurant_id, menu_item_id, amount, purchased_at)
-        VALUES ($1, $2, $3, $4, $5)
-    `, userID, restaurantID, menuItemID, price, time.Now())
-
-	if err != nil {
-		logger.Log.Error("services: Error quering database")
+	// Log the purchase
+	if _, err = tx.Exec(`
+		INSERT INTO purchases (user_id, restaurant_id, menu_item_id, amount, purchased_at)
+		VALUES ($1, $2, $3, $4, $5)
+	`, userID, restaurantID, menuItemID, price, time.Now()); err != nil {
+		logger.Log.Error("failed to insert purchase record", "error", err)
 		return err
 	}
 
-	err = tx.Commit()
-
-	if err != nil {
-		logger.Log.Error("services: Error quering database")
+	// Commit
+	if err = tx.Commit(); err != nil {
+		logger.Log.Error("failed to commit transaction", "error", err)
 		return err
-	} else {
-		commit = true
-		return nil
 	}
+
+	return nil
 }
