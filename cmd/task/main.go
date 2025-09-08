@@ -18,7 +18,11 @@ func main() {
 
 	defer db.DB.Close()
 
-	db.Ping()
+	err = db.Ping()
+
+	if err != nil {
+		panic("Database ping failed")
+	}
 
 	// register handlers
 	http.HandleFunc("/user-restaurants", api.GetUserRestaurantsHandler)

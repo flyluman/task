@@ -23,12 +23,14 @@ func Connect(connectionString string) error {
 	return nil
 }
 
-func Ping() {
+func Ping() error {
 	err := DB.Ping()
 
 	if err != nil {
 		log.Fatal(err.Error())
-	} else {
-		fmt.Println("db: Ping success")
+		return err
 	}
+
+	fmt.Println("db: Ping success")
+	return nil
 }
