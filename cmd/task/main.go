@@ -10,7 +10,12 @@ import (
 
 func main() {
 	// connect & ping pg db
-	db.Connect("postgres://postgres:@localhost:5432/test?sslmode=disable")
+	err := db.Connect("postgres://postgres:@localhost:5432/test?sslmode=disable")
+
+	if err != nil {
+		panic("Database connection failed")
+	}
+
 	defer db.DB.Close()
 
 	db.Ping()

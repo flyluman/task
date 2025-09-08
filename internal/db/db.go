@@ -10,15 +10,17 @@ import (
 
 var DB *sql.DB
 
-func Connect(connectionString string) {
+func Connect(connectionString string) error {
 	var err error
 	DB, err = sql.Open("postgres", connectionString)
 
 	if err != nil {
 		log.Fatal(err.Error())
-	} else {
-		fmt.Println("db: Connection established")
+		return err
 	}
+
+	fmt.Println("db: Connection established")
+	return nil
 }
 
 func Ping() {
