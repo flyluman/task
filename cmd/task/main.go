@@ -24,11 +24,14 @@ func main() {
 		panic("Database ping failed")
 	}
 
+	// create httpMux
+	mux := http.NewServeMux()
+
 	// register handlers
-	http.HandleFunc("/user-restaurants", api.GetUserRestaurantsHandler)
-	http.HandleFunc("/purchase", api.PurchaseMenuItemHandler)
+	mux.HandleFunc("GET /user-restaurants", api.GetUserRestaurantsHandler)
+	mux.HandleFunc("POST /purchase", api.PurchaseMenuItemHandler)
 
 	// start listening
 	fmt.Println("Starting server at localhost:8080")
-	log.Fatal(http.ListenAndServe(":8080", nil))
+	log.Fatal(http.ListenAndServe(":8080", mux))
 }
