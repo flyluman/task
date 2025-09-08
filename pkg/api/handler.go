@@ -12,7 +12,7 @@ func GetUserRestaurantsHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
 	// extract user_id from url
-	id, err := strconv.Atoi(r.URL.Query().Get("user_id"))
+	id, err := strconv.Atoi(r.PathValue("id"))
 
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)

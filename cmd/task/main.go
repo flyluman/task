@@ -28,7 +28,7 @@ func main() {
 	mux := http.NewServeMux()
 
 	// register handlers
-	mux.HandleFunc("GET /user-restaurants", api.GetUserRestaurantsHandler)
+	mux.HandleFunc("GET /user/{id}/restaurants", api.GetUserRestaurantsHandler)
 	mux.HandleFunc("POST /purchase", api.PurchaseMenuItemHandler)
 
 	// start listening
