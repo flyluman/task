@@ -8,18 +8,32 @@ import (
 	"task/internal/services"
 )
 
-func GetUserRestaurantsHandler(w http.ResponseWriter, r *http.Request) {
-	log := logger.GetLogger()
-	// set header -> application/json
-	w.Header().Set("Content-Type", "application/json")
+type RespVal map[string]interface{}
 
+func WriteJSON(w http.ResponseWriter, status int, resp RespVal) {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(status)
+	err := json.NewEncoder(w).Encode(resp)
+
+	if err != nil {
+		logger.GetLogger().Error(err.Error())
+	}
+}
+
+func WriteError(w http.ResponseWriter, status int, err error) {
+	logger.GetLogger().Error(err.Error())
+	WriteJSON(w, status, RespVal{
+		"success": false,
+		"error":   err.Error(),
+	})
+}
+
+func GetUserRestaurantsHandler(w http.ResponseWriter, r *http.Request) {
 	// extract user_id from url
 	id, err := strconv.Atoi(r.PathValue("id"))
 
 	if err != nil {
-		log.Error(err.Error())
-		w.WriteHeader(http.StatusBadRequest)
-		json.NewEncoder(w).Encode(map[string]string{"success": "false", "restaurants": "", "error": err.Error()})
+		WriteError(w, http.StatusBadRequest, err)
 		return
 	}
 
@@ -27,9 +41,7 @@ func GetUserRestaurantsHandler(w http.ResponseWriter, r *http.Request) {
 	restaurants, err := services.GetUserRestaurants(id)
 
 	if err != nil {
-		log.Error(err.Error())
-		w.WriteHeader(http.StatusInternalServerError)
-		json.NewEncoder(w).Encode(map[string]string{"success": "false", "restaurants": "", "error": err.Error()})
+		WriteError(w, http.StatusInternalServerError, err)
 		return
 	}
 
@@ -37,18 +49,16 @@ func GetUserRestaurantsHandler(w http.ResponseWriter, r *http.Request) {
 	ret, err := json.Marshal(restaurants)
 
 	if err != nil {
-		log.Error(err.Error())
-		w.WriteHeader(http.StatusInternalServerError)
-		json.NewEncoder(w).Encode(map[string]string{"success": "false", "restaurants": "", "error": err.Error()})
+		WriteError(w, http.StatusInternalServerError, err)
 		return
 	}
 
 	// return result
-	err = json.NewEncoder(w).Encode(map[string]string{"success": "true", "restaurants": string(ret), "error": ""})
-
-	if err != nil {
-		log.Error(err.Error())
-	}
+	WriteJSON(w, http.StatusOK, RespVal{
+		"success":     true,
+		"restaurants": string(ret),
+		"error":       "",
+	})
 }
 
 type Request struct {
@@ -57,10 +67,6 @@ type Request struct {
 }
 
 func PurchaseMenuItemHandler(w http.ResponseWriter, r *http.Request) {
-	log := logger.GetLogger()
-	// set header -> application/json
-	w.Header().Set("Content-Type", "application/json")
-
 	// define request json
 	var req Request
 
@@ -68,9 +74,7 @@ func PurchaseMenuItemHandler(w http.ResponseWriter, r *http.Request) {
 	err := json.NewDecoder(r.Body).Decode(&req)
 
 	if err != nil {
-		log.Error(err.Error())
-		w.WriteHeader(http.StatusInternalServerError)
-		json.NewEncoder(w).Encode(map[string]string{"success": "false", "error": err.Error()})
+		WriteError(w, http.StatusBadRequest, err)
 		return
 	}
 
@@ -78,16 +82,13 @@ func PurchaseMenuItemHandler(w http.ResponseWriter, r *http.Request) {
 	err = services.PurchaseMenuItem(req.UserID, req.MenuItemID)
 
 	if err != nil {
-		log.Error(err.Error())
-		w.WriteHeader(http.StatusInternalServerError)
-		json.NewEncoder(w).Encode(map[string]string{"success": "false", "error": err.Error()})
+		WriteError(w, http.StatusInternalServerError, err)
 		return
 	}
 
 	// return result
-	err = json.NewEncoder(w).Encode(map[string]string{"success": "true", "error": ""})
-
-	if err != nil {
-		log.Error(err.Error())
-	}
+	WriteJSON(w, http.StatusOK, RespVal{
+		"success": true,
+		"error":   "",
+	})
 }
