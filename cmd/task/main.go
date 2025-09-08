@@ -4,13 +4,23 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"os"
 	"task/internal/db"
 	"task/pkg/api"
+
+	"github.com/joho/godotenv"
 )
 
 func main() {
+	// load .env file
+	err := godotenv.Load()
+
+	if err != nil {
+		panic("load .env failed")
+	}
+
 	// connect & ping pg db
-	err := db.Connect("postgres://postgres:@localhost:5432/test?sslmode=disable")
+	err = db.Connect(os.Getenv("DBURL"))
 
 	if err != nil {
 		panic("Database connection failed")
@@ -32,6 +42,6 @@ func main() {
 	mux.HandleFunc("POST /purchase", api.PurchaseMenuItemHandler)
 
 	// start listening
-	fmt.Println("Starting server at localhost:8080")
-	log.Fatal(http.ListenAndServe(":8080", mux))
+	fmt.Println("Starting server at localhost:" + os.Getenv("SERVER_PORT"))
+	log.Fatal(http.ListenAndServe("localhost:"+os.Getenv("SERVER_PORT"), mux))
 }
