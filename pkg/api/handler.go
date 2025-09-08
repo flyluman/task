@@ -51,16 +51,18 @@ func GetUserRestaurantsHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+type Request struct {
+	UserID     int `json:"user_id"`
+	MenuItemID int `json:"menu_item_id"`
+}
+
 func PurchaseMenuItemHandler(w http.ResponseWriter, r *http.Request) {
 	log := logger.GetLogger()
 	// set header -> application/json
 	w.Header().Set("Content-Type", "application/json")
 
 	// define request json
-	var req struct {
-		UserID     int `json:"user_id"`
-		MenuItemID int `json:"menu_item_id"`
-	}
+	var req Request
 
 	// decode json from req body
 	err := json.NewDecoder(r.Body).Decode(&req)
