@@ -20,7 +20,6 @@ func main() {
 
 	// initialize logger
 	logger.Init()
-	log := logger.GetLogger()
 
 	// connect & ping pg db
 	err = db.Connect(os.Getenv("DBURL"))
@@ -45,6 +44,6 @@ func main() {
 	mux.HandleFunc("POST /purchase", api.PurchaseMenuItemHandler)
 
 	// start listening
-	log.Info("Starting server at localhost:" + os.Getenv("SERVER_PORT"))
-	log.Error(http.ListenAndServe("localhost:"+os.Getenv("SERVER_PORT"), mux).Error())
+	logger.Log.Info("Starting server at localhost:" + os.Getenv("SERVER_PORT"))
+	logger.Log.Error(http.ListenAndServe("localhost:"+os.Getenv("SERVER_PORT"), mux).Error())
 }

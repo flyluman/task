@@ -5,15 +5,10 @@ import (
 	"os"
 )
 
-var logger *slog.Logger
+var Log *slog.Logger
 
 func Init() {
-	logger = slog.New(slog.NewJSONHandler(os.Stdout, nil))
-}
-
-func GetLogger() *slog.Logger {
-	if logger == nil {
-		Init()
+	if Log == nil {
+		Log = slog.New(slog.NewJSONHandler(os.Stdout, nil))
 	}
-	return logger
 }

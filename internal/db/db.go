@@ -10,29 +10,26 @@ import (
 var DB *sql.DB
 
 func Connect(connectionString string) error {
-	log := logger.GetLogger()
-
 	var err error
 	DB, err = sql.Open("postgres", connectionString)
 
 	if err != nil {
-		log.Error(err.Error())
+		logger.Log.Error(err.Error())
 		return err
 	}
 
-	log.Info("db: Connection established")
+	logger.Log.Info("db: Connection established")
 	return nil
 }
 
 func Ping() error {
-	log := logger.GetLogger()
 	err := DB.Ping()
 
 	if err != nil {
-		log.Error(err.Error())
+		logger.Log.Error(err.Error())
 		return err
 	}
 
-	log.Info("db: Ping success")
+	logger.Log.Info("db: Ping success")
 	return nil
 }

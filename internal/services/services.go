@@ -14,8 +14,6 @@ type Restaurant struct {
 }
 
 func GetUserRestaurants(userID int) ([]Restaurant, error) {
-	log := logger.GetLogger()
-
 	rows, err := db.DB.Query(`
 	SELECT DISTINCT r.id, r.name, r.cash_balance
 	FROM restaurants r
@@ -23,7 +21,7 @@ func GetUserRestaurants(userID int) ([]Restaurant, error) {
 	WHERE p.user_id = $1`, userID)
 
 	if err != nil {
-		log.Error(err.Error())
+		logger.Log.Error(err.Error())
 		return nil, err
 	}
 
@@ -34,7 +32,7 @@ func GetUserRestaurants(userID int) ([]Restaurant, error) {
 	for rows.Next() {
 		var r Restaurant
 		if err := rows.Scan(&r.ID, &r.Name, &r.CashBalance); err != nil {
-			log.Error(err.Error())
+			logger.Log.Error(err.Error())
 			return nil, err
 		}
 		restaurants = append(restaurants, r)
@@ -44,12 +42,11 @@ func GetUserRestaurants(userID int) ([]Restaurant, error) {
 }
 
 func PurchaseMenuItem(userID, menuItemID int) error {
-	log := logger.GetLogger()
 	commit := false
 	tx, err := db.DB.Begin()
 
 	if err != nil {
-		log.Error("services: Error intializing transaction")
+		logger.Log.Error("services: Error intializing transaction")
 		return err
 	}
 
@@ -65,7 +62,7 @@ func PurchaseMenuItem(userID, menuItemID int) error {
 	err = tx.QueryRow("SELECT price, restaurant_id FROM menu_items WHERE id=$1", menuItemID).Scan(&price, &restaurantID)
 
 	if err != nil {
-		log.Error("services: Error quering database")
+		logger.Log.Error("services: Error quering database")
 		return err
 	}
 
@@ -74,7 +71,7 @@ func PurchaseMenuItem(userID, menuItemID int) error {
 	err = tx.QueryRow("SELECT cash_balance FROM users WHERE id=$1", userID).Scan(&userBalance)
 
 	if err != nil {
-		log.Error("services: Error quering database")
+		logger.Log.Error("services: Error quering database")
 		return err
 	}
 
@@ -85,14 +82,14 @@ func PurchaseMenuItem(userID, menuItemID int) error {
 	_, err = tx.Exec("UPDATE users SET cash_balance = cash_balance - $1 WHERE id=$2", price, userID)
 
 	if err != nil {
-		log.Error("services: Error quering database")
+		logger.Log.Error("services: Error quering database")
 		return err
 	}
 
 	_, err = tx.Exec("UPDATE restaurants SET cash_balance = cash_balance + $1 WHERE id=$2", price, restaurantID)
 
 	if err != nil {
-		log.Error("services: Error quering database")
+		logger.Log.Error("services: Error quering database")
 		return err
 	}
 
@@ -102,14 +99,14 @@ func PurchaseMenuItem(userID, menuItemID int) error {
     `, userID, restaurantID, menuItemID, price, time.Now())
 
 	if err != nil {
-		log.Error("services: Error quering database")
+		logger.Log.Error("services: Error quering database")
 		return err
 	}
 
 	err = tx.Commit()
 
 	if err != nil {
-		log.Error("services: Error quering database")
+		logger.Log.Error("services: Error quering database")
 		return err
 	} else {
 		commit = true

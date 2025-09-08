@@ -16,12 +16,12 @@ func WriteJSON(w http.ResponseWriter, status int, resp RespVal) {
 	err := json.NewEncoder(w).Encode(resp)
 
 	if err != nil {
-		logger.GetLogger().Error(err.Error())
+		logger.Log.Error(err.Error())
 	}
 }
 
 func WriteError(w http.ResponseWriter, status int, err error) {
-	logger.GetLogger().Error(err.Error())
+	logger.Log.Error(err.Error())
 	WriteJSON(w, status, RespVal{
 		"success": false,
 		"error":   err.Error(),
