@@ -4,10 +4,12 @@ import (
 	"encoding/json"
 	"net/http"
 	"strconv"
+	"task/internal/logger"
 	"task/internal/services"
 )
 
 func GetUserRestaurantsHandler(w http.ResponseWriter, r *http.Request) {
+	log := logger.GetLogger()
 	// set header -> application/json
 	w.Header().Set("Content-Type", "application/json")
 
@@ -15,6 +17,7 @@ func GetUserRestaurantsHandler(w http.ResponseWriter, r *http.Request) {
 	id, err := strconv.Atoi(r.PathValue("id"))
 
 	if err != nil {
+		log.Error(err.Error())
 		w.WriteHeader(http.StatusBadRequest)
 		json.NewEncoder(w).Encode(map[string]string{"success": "false", "restaurants": "", "error": err.Error()})
 		return
@@ -24,6 +27,7 @@ func GetUserRestaurantsHandler(w http.ResponseWriter, r *http.Request) {
 	restaurants, err := services.GetUserRestaurants(id)
 
 	if err != nil {
+		log.Error(err.Error())
 		w.WriteHeader(http.StatusInternalServerError)
 		json.NewEncoder(w).Encode(map[string]string{"success": "false", "restaurants": "", "error": err.Error()})
 		return
@@ -33,16 +37,22 @@ func GetUserRestaurantsHandler(w http.ResponseWriter, r *http.Request) {
 	ret, err := json.Marshal(restaurants)
 
 	if err != nil {
+		log.Error(err.Error())
 		w.WriteHeader(http.StatusInternalServerError)
 		json.NewEncoder(w).Encode(map[string]string{"success": "false", "restaurants": "", "error": err.Error()})
 		return
 	}
 
 	// return result
-	json.NewEncoder(w).Encode(map[string]string{"success": "true", "restaurants": string(ret), "error": ""})
+	err = json.NewEncoder(w).Encode(map[string]string{"success": "true", "restaurants": string(ret), "error": ""})
+
+	if err != nil {
+		log.Error(err.Error())
+	}
 }
 
 func PurchaseMenuItemHandler(w http.ResponseWriter, r *http.Request) {
+	log := logger.GetLogger()
 	// set header -> application/json
 	w.Header().Set("Content-Type", "application/json")
 
@@ -56,6 +66,7 @@ func PurchaseMenuItemHandler(w http.ResponseWriter, r *http.Request) {
 	err := json.NewDecoder(r.Body).Decode(&req)
 
 	if err != nil {
+		log.Error(err.Error())
 		w.WriteHeader(http.StatusInternalServerError)
 		json.NewEncoder(w).Encode(map[string]string{"success": "false", "error": err.Error()})
 		return
@@ -65,11 +76,16 @@ func PurchaseMenuItemHandler(w http.ResponseWriter, r *http.Request) {
 	err = services.PurchaseMenuItem(req.UserID, req.MenuItemID)
 
 	if err != nil {
+		log.Error(err.Error())
 		w.WriteHeader(http.StatusInternalServerError)
 		json.NewEncoder(w).Encode(map[string]string{"success": "false", "error": err.Error()})
 		return
 	}
 
 	// return result
-	json.NewEncoder(w).Encode(map[string]string{"success": "true", "error": ""})
+	err = json.NewEncoder(w).Encode(map[string]string{"success": "true", "error": ""})
+
+	if err != nil {
+		log.Error(err.Error())
+	}
 }

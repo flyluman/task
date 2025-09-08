@@ -1,11 +1,10 @@
 package main
 
 import (
-	"fmt"
-	"log"
 	"net/http"
 	"os"
 	"task/internal/db"
+	"task/internal/logger"
 	"task/pkg/api"
 
 	"github.com/joho/godotenv"
@@ -18,6 +17,10 @@ func main() {
 	if err != nil {
 		panic("load .env failed")
 	}
+
+	// initialize logger
+	logger.Init()
+	log := logger.GetLogger()
 
 	// connect & ping pg db
 	err = db.Connect(os.Getenv("DBURL"))
@@ -42,6 +45,6 @@ func main() {
 	mux.HandleFunc("POST /purchase", api.PurchaseMenuItemHandler)
 
 	// start listening
-	fmt.Println("Starting server at localhost:" + os.Getenv("SERVER_PORT"))
-	log.Fatal(http.ListenAndServe("localhost:"+os.Getenv("SERVER_PORT"), mux))
+	log.Info("Starting server at localhost:" + os.Getenv("SERVER_PORT"))
+	log.Error(http.ListenAndServe("localhost:"+os.Getenv("SERVER_PORT"), mux).Error())
 }

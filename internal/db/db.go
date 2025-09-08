@@ -2,8 +2,7 @@ package db
 
 import (
 	"database/sql"
-	"fmt"
-	"log"
+	"task/internal/logger"
 
 	_ "github.com/lib/pq"
 )
@@ -11,26 +10,29 @@ import (
 var DB *sql.DB
 
 func Connect(connectionString string) error {
+	log := logger.GetLogger()
+
 	var err error
 	DB, err = sql.Open("postgres", connectionString)
 
 	if err != nil {
-		log.Fatal(err.Error())
+		log.Error(err.Error())
 		return err
 	}
 
-	fmt.Println("db: Connection established")
+	log.Info("db: Connection established")
 	return nil
 }
 
 func Ping() error {
+	log := logger.GetLogger()
 	err := DB.Ping()
 
 	if err != nil {
-		log.Fatal(err.Error())
+		log.Error(err.Error())
 		return err
 	}
 
-	fmt.Println("db: Ping success")
+	log.Info("db: Ping success")
 	return nil
 }
