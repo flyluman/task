@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"strconv"
 	"task/internal/service"
+	"task/model"
 	"task/pkg/logger"
 )
 
@@ -61,14 +62,9 @@ func GetUserRestaurantsHandler(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
-type Request struct {
-	UserID     int `json:"user_id"`
-	MenuItemID int `json:"menu_item_id"`
-}
-
 func PurchaseMenuItemHandler(w http.ResponseWriter, r *http.Request) {
 	// define request json
-	var req Request
+	var req model.Request
 
 	// decode json from req body
 	err := json.NewDecoder(r.Body).Decode(&req)

@@ -3,17 +3,12 @@ package service
 import (
 	"errors"
 	"task/internal/repository"
+	"task/model"
 	"task/pkg/logger"
 	"time"
 )
 
-type Restaurant struct {
-	ID          int     `json:"id"`
-	Name        string  `json:"name"`
-	CashBalance float32 `json:"cash_balance"`
-}
-
-func GetUserRestaurants(userID int) ([]Restaurant, error) {
+func GetUserRestaurants(userID int) ([]model.Restaurant, error) {
 	const query = `
 		SELECT DISTINCT r.id, r.name, r.cash_balance
 		FROM restaurants r
@@ -28,9 +23,9 @@ func GetUserRestaurants(userID int) ([]Restaurant, error) {
 	}
 	defer rows.Close()
 
-	var restaurants []Restaurant
+	var restaurants []model.Restaurant
 	for rows.Next() {
-		var r Restaurant
+		var r model.Restaurant
 		if err := rows.Scan(&r.ID, &r.Name, &r.CashBalance); err != nil {
 			logger.Log.Error("failed to scan restaurant row", "error", err)
 			return nil, err
