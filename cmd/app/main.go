@@ -3,9 +3,9 @@ package main
 import (
 	"net/http"
 	"os"
-	"task/internal/db"
-	"task/internal/logger"
-	"task/pkg/api"
+	"task/internal/handler"
+	"task/internal/repository"
+	"task/pkg/logger"
 
 	"github.com/joho/godotenv"
 )
@@ -22,15 +22,15 @@ func main() {
 	logger.Init()
 
 	// connect & ping pg db
-	err = db.Connect(os.Getenv("DBURL"))
+	err = repository.Connect(os.Getenv("DBURL"))
 
 	if err != nil {
 		panic("Database connection failed")
 	}
 
-	defer db.DB.Close()
+	defer repository.DB.Close()
 
-	err = db.Ping()
+	err = repository.Ping()
 
 	if err != nil {
 		panic("Database ping failed")
@@ -40,8 +40,8 @@ func main() {
 	mux := http.NewServeMux()
 
 	// register handlers
-	mux.HandleFunc("GET /user/{id}/restaurants", api.GetUserRestaurantsHandler)
-	mux.HandleFunc("POST /purchase", api.PurchaseMenuItemHandler)
+	mux.HandleFunc("GET /user/{id}/restaurants", handler.GetUserRestaurantsHandler)
+	mux.HandleFunc("POST /purchase", handler.PurchaseMenuItemHandler)
 
 	// start listening
 	logger.Log.Info("Starting server at localhost:" + os.Getenv("SERVER_PORT"))

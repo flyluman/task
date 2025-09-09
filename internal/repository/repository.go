@@ -1,8 +1,8 @@
-package db
+package repository
 
 import (
 	"database/sql"
-	"task/internal/logger"
+	"task/pkg/logger"
 
 	_ "github.com/lib/pq"
 )

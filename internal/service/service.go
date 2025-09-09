@@ -1,9 +1,9 @@
-package services
+package service
 
 import (
 	"errors"
-	"task/internal/db"
-	"task/internal/logger"
+	"task/internal/repository"
+	"task/pkg/logger"
 	"time"
 )
 
@@ -21,7 +21,7 @@ func GetUserRestaurants(userID int) ([]Restaurant, error) {
 		WHERE p.user_id = $1
 	`
 
-	rows, err := db.DB.Query(query, userID)
+	rows, err := repository.DB.Query(query, userID)
 	if err != nil {
 		logger.Log.Error("failed to query user restaurants", "user_id", userID, "error", err)
 		return nil, err
@@ -42,7 +42,7 @@ func GetUserRestaurants(userID int) ([]Restaurant, error) {
 }
 
 func PurchaseMenuItem(userID, menuItemID int) error {
-	tx, err := db.DB.Begin()
+	tx, err := repository.DB.Begin()
 	if err != nil {
 		logger.Log.Error("failed to begin transaction", "error", err)
 		return err

@@ -1,11 +1,11 @@
-package api
+package handler
 
 import (
 	"encoding/json"
 	"net/http"
 	"strconv"
-	"task/internal/logger"
-	"task/internal/services"
+	"task/internal/service"
+	"task/pkg/logger"
 )
 
 type RespVal map[string]interface{}
@@ -38,7 +38,7 @@ func GetUserRestaurantsHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// get restaurants
-	restaurants, err := services.GetUserRestaurants(id)
+	restaurants, err := service.GetUserRestaurants(id)
 
 	if err != nil {
 		WriteError(w, http.StatusInternalServerError, err)
@@ -79,7 +79,7 @@ func PurchaseMenuItemHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// purchase(atomic)
-	err = services.PurchaseMenuItem(req.UserID, req.MenuItemID)
+	err = service.PurchaseMenuItem(req.UserID, req.MenuItemID)
 
 	if err != nil {
 		WriteError(w, http.StatusInternalServerError, err)
