@@ -9,6 +9,10 @@ import (
 	"task/pkg/logger"
 )
 
+type UserHandler struct {
+	UserService service.UserService
+}
+
 type RespVal map[string]interface{}
 
 func WriteJSON(w http.ResponseWriter, status int, resp RespVal) {
@@ -29,7 +33,7 @@ func WriteError(w http.ResponseWriter, status int, err error) {
 	})
 }
 
-func GetUserRestaurantsHandler(w http.ResponseWriter, r *http.Request) {
+func (h *UserHandler) GetUserRestaurantsHandler(w http.ResponseWriter, r *http.Request) {
 	// extract user_id from url
 	id, err := strconv.Atoi(r.PathValue("id"))
 
@@ -39,7 +43,7 @@ func GetUserRestaurantsHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// get restaurants
-	restaurants, err := service.GetUserRestaurants(id)
+	restaurants, err := h.UserService.GetUserRestaurants(id)
 
 	if err != nil {
 		WriteError(w, http.StatusInternalServerError, err)
@@ -62,7 +66,7 @@ func GetUserRestaurantsHandler(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
-func PurchaseMenuItemHandler(w http.ResponseWriter, r *http.Request) {
+func (h *UserHandler) PurchaseMenuItemHandler(w http.ResponseWriter, r *http.Request) {
 	// define request json
 	var req model.Request
 
@@ -75,7 +79,7 @@ func PurchaseMenuItemHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// purchase(atomic)
-	err = service.PurchaseMenuItem(req.UserID, req.MenuItemID)
+	err = h.UserService.PurchaseMenuItem(req.UserID, req.MenuItemID)
 
 	if err != nil {
 		WriteError(w, http.StatusInternalServerError, err)

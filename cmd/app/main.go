@@ -1,13 +1,16 @@
 package main
 
 import (
+	"database/sql"
 	"net/http"
 	"os"
 	"task/internal/handler"
 	"task/internal/repository"
+	"task/internal/service"
 	"task/pkg/logger"
 
 	"github.com/joho/godotenv"
+	_ "github.com/lib/pq"
 )
 
 func main() {
@@ -21,20 +24,18 @@ func main() {
 	// initialize logger
 	logger.Init()
 
-	// connect & ping pg db
-	err = repository.Connect(os.Getenv("DBURL"))
+	// connect db
+	db, err := sql.Open("postgres", os.Getenv("DBURL"))
 
 	if err != nil {
-		panic("Database connection failed")
+		panic("Error connecting database")
 	}
 
-	defer repository.DB.Close()
+	defer db.Close()
 
-	err = repository.Ping()
-
-	if err != nil {
-		panic("Database ping failed")
-	}
+	repo := repository.NewUserRepository(db)
+	service := service.NewUserService(repo)
+	handler := handler.UserHandler{UserService: service}
 
 	// create httpMux
 	mux := http.NewServeMux()
