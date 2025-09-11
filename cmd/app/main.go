@@ -21,9 +21,6 @@ func main() {
 		panic("load .env failed")
 	}
 
-	// initialize logger
-	logger.Init()
-
 	// connect db
 	db, err := sql.Open("postgres", os.Getenv("DBURL"))
 
