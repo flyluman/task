@@ -2,6 +2,7 @@ package main
 
 import (
 	"database/sql"
+	"log/slog"
 	"net/http"
 	"os"
 	"task/internal/handler"
@@ -33,9 +34,11 @@ func main() {
 
 	defer db.Close()
 
+	logger := slog.New(slog.NewJSONHandler(os.Stdout, nil))
+
 	repo := repository.NewUserRepository(db)
 	service := service.NewUserService(repo)
-	handler := handler.UserHandler{UserService: service}
+	handler := handler.NewUserHandler(logger, service)
 
 	// create httpMux
 	mux := http.NewServeMux()
@@ -45,6 +48,6 @@ func main() {
 	mux.HandleFunc("POST /purchase", handler.PurchaseMenuItemHandler)
 
 	// start listening
-	logger.Log.Info("Starting server at localhost:" + os.Getenv("SERVER_PORT"))
-	logger.Log.Error(http.ListenAndServe("localhost:"+os.Getenv("SERVER_PORT"), mux).Error())
+	logger.Info("Starting server at localhost:" + os.Getenv("SERVER_PORT"))
+	logger.Error(http.ListenAndServe("localhost:"+os.Getenv("SERVER_PORT"), mux).Error())
 }

@@ -82,7 +82,7 @@ func (r *userRepo) PurchaseTX(userID, menuItemID int) error {
 
 	// Check balance
 	if userBalance < price {
-		return errors.New("insufficient balance")
+		return errors.New("repo: insufficient balance")
 	}
 
 	// Deduct from user

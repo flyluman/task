@@ -4,13 +4,27 @@ import (
 	"encoding/json"
 	"net/http"
 	"strconv"
+	"strings"
 	"task/internal/service"
 	"task/model"
-	"task/pkg/logger"
 )
 
+type UserLogger interface {
+	Debug(msg string, args ...any)
+	Error(msg string, args ...any)
+	Info(msg string, args ...any)
+}
+
 type UserHandler struct {
+	logger      UserLogger
 	UserService service.UserService
+}
+
+var userHandler *UserHandler
+
+func NewUserHandler(l UserLogger, s service.UserService) *UserHandler {
+	userHandler = &UserHandler{logger: l, UserService: s}
+	return userHandler
 }
 
 type RespVal map[string]interface{}
@@ -21,20 +35,20 @@ func WriteJSON(w http.ResponseWriter, status int, resp RespVal) {
 	err := json.NewEncoder(w).Encode(resp)
 
 	if err != nil {
-		logger.Log.Error(err.Error())
+		userHandler.logger.Error(err.Error())
 	}
 }
 
 func WriteError(w http.ResponseWriter, status int, err error) {
-	logger.Log.Error(err.Error())
+	userHandler.logger.Error(strings.ReplaceAll(err.Error(), "\n", ", "))
 	WriteJSON(w, status, RespVal{
 		"success": false,
-		"error":   err.Error(),
+		"error":   strings.ReplaceAll(err.Error(), "\n", ", "),
 	})
 }
 
 func (h *UserHandler) GetUserRestaurantsHandler(w http.ResponseWriter, r *http.Request) {
-	// extract user_id from url
+	// extract user id from url
 	id, err := strconv.Atoi(r.PathValue("id"))
 
 	if err != nil {
