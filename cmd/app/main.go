@@ -2,7 +2,6 @@ package main
 
 import (
 	"database/sql"
-	"log/slog"
 	"net/http"
 	"os"
 	"task/internal/handler"
@@ -34,7 +33,7 @@ func main() {
 
 	defer db.Close()
 
-	logger := slog.New(slog.NewJSONHandler(os.Stdout, nil))
+	logger := logger.NewStdLogger()
 
 	repo := repository.NewUserRepository(db)
 	service := service.NewUserService(repo)

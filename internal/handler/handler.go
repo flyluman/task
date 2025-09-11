@@ -6,22 +6,17 @@ import (
 	"strconv"
 	"strings"
 	"task/internal/service"
+	"task/pkg/logger"
 )
 
-type UserLogger interface {
-	Debug(msg string, args ...any)
-	Error(msg string, args ...any)
-	Info(msg string, args ...any)
-}
-
 type UserHandler struct {
-	logger      UserLogger
+	logger      logger.Logger
 	UserService service.UserService
 }
 
 var userHandler *UserHandler
 
-func NewUserHandler(l UserLogger, s service.UserService) *UserHandler {
+func NewUserHandler(l logger.Logger, s service.UserService) *UserHandler {
 	userHandler = &UserHandler{logger: l, UserService: s}
 	return userHandler
 }
