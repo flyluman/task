@@ -50,18 +50,10 @@ func (h *UserHandler) GetUserRestaurantsHandler(w http.ResponseWriter, r *http.R
 		return
 	}
 
-	// convirts restaurant slices into byte
-	ret, err := json.Marshal(restaurants)
-
-	if err != nil {
-		WriteError(w, http.StatusInternalServerError, err)
-		return
-	}
-
 	// return result
 	WriteJSON(w, http.StatusOK, RespVal{
 		"success":     true,
-		"restaurants": string(ret),
+		"restaurants": restaurants,
 		"error":       "",
 	})
 }
