@@ -6,7 +6,6 @@ import (
 	"strconv"
 	"strings"
 	"task/internal/service"
-	"task/model"
 )
 
 type UserLogger interface {
@@ -28,6 +27,11 @@ func NewUserHandler(l UserLogger, s service.UserService) *UserHandler {
 }
 
 type RespVal map[string]interface{}
+
+type Request struct {
+	UserID     int `json:"user_id"`
+	MenuItemID int `json:"menu_item_id"`
+}
 
 func WriteJSON(w http.ResponseWriter, status int, resp RespVal) {
 	w.Header().Set("Content-Type", "application/json")
@@ -74,7 +78,7 @@ func (h *UserHandler) GetUserRestaurantsHandler(w http.ResponseWriter, r *http.R
 
 func (h *UserHandler) PurchaseMenuItemHandler(w http.ResponseWriter, r *http.Request) {
 	// define request json
-	var req model.Request
+	var req Request
 
 	// decode json from req body
 	err := json.NewDecoder(r.Body).Decode(&req)
