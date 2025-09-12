@@ -2,6 +2,7 @@ package service
 
 import (
 	"errors"
+	"fmt"
 	"task/internal/repository"
 	"task/model"
 )
@@ -23,7 +24,7 @@ func (s *userService) GetUserRestaurants(userID int) ([]model.Restaurant, error)
 	restaurants, err := s.repo.QueryRestaurants(userID)
 
 	if err != nil {
-		err = errors.Join(errors.New("service: GetUserRestaurants() failed"), err)
+		err = errors.Join(fmt.Errorf("service: GetUserRestaurants(%d) failed", userID), err)
 		return nil, err
 	}
 
@@ -34,7 +35,7 @@ func (s *userService) PurchaseMenuItem(userID, menuItemID int) error {
 	err := s.repo.PurchaseTX(userID, menuItemID)
 
 	if err != nil {
-		err = errors.Join(errors.New("service: PurchaseMenuItem() failed"), err)
+		err = errors.Join(fmt.Errorf("service: PurchaseMenuItem(%d, %d) failed", userID, menuItemID), err)
 	}
 
 	return err
