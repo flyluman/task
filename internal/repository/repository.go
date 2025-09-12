@@ -2,7 +2,7 @@ package repository
 
 import (
 	"database/sql"
-	"errors"
+	"fmt"
 	"task/model"
 	"time"
 )
@@ -82,7 +82,7 @@ func (r *userRepo) PurchaseTX(userID, menuItemID int) error {
 
 	// Check balance
 	if userBalance < price {
-		return errors.New("repo: insufficient balance")
+		return fmt.Errorf("repo: insufficient balance. userBalance: %f, price %f", userBalance, price)
 	}
 
 	// Deduct from user
